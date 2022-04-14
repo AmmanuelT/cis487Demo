@@ -1,7 +1,7 @@
 // collaboration between Ammanuel Tamrat and Kevin Liew
 const textureLoader = new THREE.TextureLoader();
 
-//const normalTexture = textureLoader.load('/NormalMap.png')
+// Scene set up
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -13,18 +13,25 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild(renderer.domElement);
 
+// Colors that will be used for different faces
+
 const white = new THREE.Color( 0xffffff );
 const black = new THREE.Color( 0x000000 );
 const red = new THREE.Color( 0xff0000 );
 const green = new THREE.Color( 0x00ff00 );
 const blue = new THREE.Color( 0x0000ff );
 const yellow = new THREE.Color( 0xffff00 );
-const orange = new THREE.Color( 0xfe9815)
+const orange = new THREE.Color( 0xfe9815);
 
+// array of colors
 const color = [white,black,red,green,blue,yellow];
 function toRad(angle){
     return angle*Math.PI /180
 }
+
+// attempt to use small squares to color the outside of the subcube
+// but we couldn't add a group of faces to the cubes as it would
+// be a problem when adding the cubes to a group when rotating faces
 function coloredSquare(x,y,z,rotX,rotY,color){
     const pl = new THREE.PlaneGeometry(1,1)
     const material = new THREE.MeshStandardMaterial()
@@ -42,15 +49,24 @@ function coloredSquare(x,y,z,rotX,rotY,color){
     return square
 }
 
+// creates a new box
 function subcube(x,y,z){
     const pl = new THREE.BoxGeometry()
-    const material = new THREE.MeshStandardMaterial()
+    // tried to play with the material to change colors
+    const material = new THREE.MeshBasicMaterial( { 
+        color:  0x00ff00, 
+        vertexColors: true 
+    });
+    
     const cube = new THREE.Mesh( pl, material);
+    
     cube.translateX(x)
     cube.translateY(y)
     cube.translateZ(z)
   
-    /*
+/*
+remainder of code trying to add a group of colored squares to each subcube 
+
 const cube = new THREE.Group();
 const front = coloredSquare(x, y, z+0.5, 0 , 0, (z == 1)? white : black);
 const back = coloredSquare(x, y, z-0.5, 0 , 0, (z == -1)? blue : black);
@@ -71,11 +87,7 @@ scene.add(cube);
 return cube
 }
 
-// let cube = subcube(0,1,0)
-//let s = subcube(1,1,1)
-
-//const d = cube.matrix
-//console.log(d)
+// array of subcubes
 
 const c = [ [ [],[],[] ],
 [ [],[],[] ],
@@ -89,7 +101,7 @@ for (let i = 0; i < 3; i++){
     }
 }
 
-const pointLight2 = new THREE.PointLight(0xffffff, 1)
+const pointLight2 = new THREE.PointLight(0xffffff, 1 )
 pointLight2.position.x = 2
 pointLight2.position.y = 3
 pointLight2.position.z = 4
@@ -133,16 +145,12 @@ for (let i = 0; i <3; i++){
 
 scene.add(g);
 function animate() {
-
-    //targetX = mouseX * 0.001;
-    //targetY = mouseY * 0.001;
-    //targetZ = zoom * 0.002;
-
     
     requestAnimationFrame( animate );
 	renderer.render( scene, camera );
     
     if (f<91){
+        // we keep udating each subcubes matrix after each transformation
         let a = new THREE.Vector3(1,0,0)
         g.setRotationFromAxisAngle(a,toRad(f))
         for (let i = 0; i <3; i++){
@@ -153,16 +161,28 @@ function animate() {
 
         
     } else if( f == 91){
+        // removing subcubes from cubes so that we can add new cubes 
+        // that are part of group that we want to rotate
         for (let i = 0; i <3; i++){
             for ( let j = 0; j < 3; j++){
-            g.remove(c[0][j][i]) 
-            g.add(c[2][j][i])
-            scene.add(c[0][j][i])  
-            }    
+            g.remove(c[0][j][i])
+            scene.add(c[0][j][i]) 
+            }
         }
+            for (let i = 0; i < 3; i++){
+                for (let j = 0 ; j < 3; j++){
+                    for (let k = 0; k < 3; k++){
+                        if(c[i][j][k].position.z == -1){
+                         g.add(c[i][j][k])
+                          
+                        }
+                }
+            }
+ 
+        }       
     } else if (f < 181){
             
-            let a = new THREE.Vector3(1,0,0)
+            let a = new THREE.Vector3(0,0,1)
             g.setRotationFromAxisAngle(a,toRad(f))
             for (let i = 0; i <3; i++){
                 for ( let j = 0; j < 3; j++){
