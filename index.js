@@ -7,7 +7,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 const renderer = new THREE.WebGLRenderer({
-    alpha: true
+    canvas: demo, alpha: true
 }
 );
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -95,6 +95,10 @@ pointLight2.position.y = 3
 pointLight2.position.z = 4
 scene.add(pointLight2)
 
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+camera.rotation.x = -45/180*Math.PI;
+camera.position.x = 0;
+camera.position.y = 5;
 camera.position.z = 5;
 
 document.addEventListener('mousemove', onDocumentMouseMove)
@@ -129,17 +133,17 @@ for (let i = 0; i <3; i++){
 
 scene.add(g);
 function animate() {
-	
-    targetX = mouseX * 0.001;
-    targetY = mouseY * 0.001;
-    targetZ = zoom * 0.002;
+
+    //targetX = mouseX * 0.001;
+    //targetY = mouseY * 0.001;
+    //targetZ = zoom * 0.002;
 
     
     requestAnimationFrame( animate );
 	renderer.render( scene, camera );
     
     if (f<91){
-        a = new THREE.Vector3(1,0,0)
+        let a = new THREE.Vector3(1,0,0)
         g.setRotationFromAxisAngle(a,toRad(f))
         for (let i = 0; i <3; i++){
             for ( let j = 0; j < 3; j++){
@@ -157,7 +161,8 @@ function animate() {
             }    
         }
     } else if (f < 181){
-
+            
+            let a = new THREE.Vector3(1,0,0)
             g.setRotationFromAxisAngle(a,toRad(f))
             for (let i = 0; i <3; i++){
                 for ( let j = 0; j < 3; j++){
