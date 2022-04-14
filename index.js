@@ -1,4 +1,3 @@
-
 const textureLoader = new THREE.TextureLoader();
 
 //const normalTexture = textureLoader.load('/NormalMap.png')
@@ -6,8 +5,10 @@ const textureLoader = new THREE.TextureLoader();
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
+const demo = document.getElementById("demo");
+
 const renderer = new THREE.WebGLRenderer({
-    alpha: true
+    canvas: demo, alpha: true
 }
 );
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -25,6 +26,7 @@ const color = [white,black,red,green,blue,yellow];
 function toRad(angle){
     return angle*Math.PI /180
 }
+/*
 function coloredSquare(x,y,z,rotX,rotY,color){
     const pl = new THREE.PlaneGeometry(1,1)
     const material = new THREE.MeshStandardMaterial()
@@ -41,6 +43,7 @@ function coloredSquare(x,y,z,rotX,rotY,color){
 
     return square
 }
+*/
 
 function subcube(x,y,z){
     const pl = new THREE.BoxGeometry()
@@ -93,6 +96,10 @@ pointLight2.position.y = 3
 pointLight2.position.z = 4
 scene.add(pointLight2)
 
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+camera.rotation.x = -45/180*Math.PI;
+camera.position.x = 0;
+camera.position.y = 5;
 camera.position.z = 5;
 
 document.addEventListener('mousemove', onDocumentMouseMove)
@@ -119,9 +126,9 @@ function onDocumentMouseScroll(event){
 let f = 0;
 function animate() {
 	
-    targetX = mouseX * 0.001;
-    targetY = mouseY * 0.001;
-    targetZ = zoom * 0.002;
+    //targetX = mouseX * 0.001;
+    //targetY = mouseY * 0.001;
+    //targetZ = zoom * 0.002;
 
     
     requestAnimationFrame( animate );
@@ -129,7 +136,7 @@ function animate() {
     
     if (f<90){
         for (let i = 0; i < 3; i++){
-                    a = new THREE.Vector3(0,0,1)
+                    let a = new THREE.Vector3(0,0,1)
                     c[i].setRotationFromAxisAngle(a,toRad(f))        
         }
         
