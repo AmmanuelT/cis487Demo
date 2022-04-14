@@ -38,7 +38,7 @@ function coloredSquare(x,y,z,rotX,rotY,color){
     square.material.color.set(color)
 
     scene.add(square);
-
+    
     return square
 }
 
@@ -76,13 +76,15 @@ return cube
 
 //const d = cube.matrix
 //console.log(d)
-const c = new Array(27);
-let h = 0;
+
+const c = [ [ [],[],[] ],
+[ [],[],[] ],
+[ [],[],[] ] ];
+
 for (let i = 0; i < 3; i++){
     for (let j = 0 ; j < 3; j++){
         for (let k = 0; k < 3; k++){
-            c[h] = subcube(i-1,j-1,k-1);
-            h++; 
+            c[i][j][k] = subcube(i-1,j-1,k-1); 
         }
     }
 }
@@ -117,6 +119,15 @@ function onDocumentMouseScroll(event){
 }
 
 let f = 0;
+let g = new THREE.Group()
+// adding to a group can allow to move whole group the same
+for (let i = 0; i <3; i++){
+    for ( let j = 0; j < 3; j++){
+        g.add(c[0][j][i]) 
+    }          
+}
+
+scene.add(g);
 function animate() {
 	
     targetX = mouseX * 0.001;
@@ -127,12 +138,33 @@ function animate() {
     requestAnimationFrame( animate );
 	renderer.render( scene, camera );
     
-    if (f<90){
-        for (let i = 0; i < 3; i++){
-                    a = new THREE.Vector3(0,0,1)
-                    c[i].setRotationFromAxisAngle(a,toRad(f))        
+    if (f<91){
+        a = new THREE.Vector3(1,0,0)
+        g.setRotationFromAxisAngle(a,toRad(f))
+        for (let i = 0; i <3; i++){
+            for ( let j = 0; j < 3; j++){
+            c[0][j][i].updateMatrix() 
+            }      
         }
+
         
+    } else if( f == 91){
+        for (let i = 0; i <3; i++){
+            for ( let j = 0; j < 3; j++){
+            g.remove(c[0][j][i]) 
+            g.add(c[2][j][i])
+            scene.add(c[0][j][i])  
+            }    
+        }
+    } else if (f < 181){
+
+            g.setRotationFromAxisAngle(a,toRad(f))
+            for (let i = 0; i <3; i++){
+                for ( let j = 0; j < 3; j++){
+                c[i][j][0].updateMatrix() 
+                }      
+            }
+
     }
     
     
