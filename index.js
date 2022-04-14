@@ -1,4 +1,4 @@
-
+// collaboration between Ammanuel Tamrat and Kevin Liew
 const textureLoader = new THREE.TextureLoader();
 
 //const normalTexture = textureLoader.load('/NormalMap.png')
