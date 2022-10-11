@@ -1,154 +1,138 @@
-const textureLoader = new THREE.TextureLoader();
+// Kevin Liew 
+// reference: three.js official documentation
 
-//const normalTexture = textureLoader.load('/NormalMap.png')
-
+// set the scene and camera in a perspective view
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x181818)
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
+// put the whole scene into a canvas from html
 const demo = document.getElementById("demo");
-
 const renderer = new THREE.WebGLRenderer({
-    canvas: demo, alpha: true
-}
+    canvas: demo, alpha: true, antialias: true,
+} 
 );
 renderer.setSize( window.innerWidth, window.innerHeight );
+// enable shadow
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
-const white = new THREE.Color( 0xffffff );
-const black = new THREE.Color( 0x000000 );
-const red = new THREE.Color( 0xff0000 );
-const green = new THREE.Color( 0x00ff00 );
-const blue = new THREE.Color( 0x0000ff );
-const yellow = new THREE.Color( 0xffff00 );
-const orange = new THREE.Color( 0xfe9815)
-
-const color = [white,black,red,green,blue,yellow];
-function toRad(angle){
-    return angle*Math.PI /180
-}
-/*
-function coloredSquare(x,y,z,rotX,rotY,color){
-    const pl = new THREE.PlaneGeometry(1,1)
-    const material = new THREE.MeshStandardMaterial()
-    const square = new THREE.Mesh( pl, material);
-    square.translateX(x)
-    square.translateY(y)
-    square.translateZ(z)
-    square.rotateX(toRad(rotX))
-    square.rotateX(toRad(rotY))
-
-    square.material.color.set(color)
-
-    scene.add(square);
-
-    return square
-}
-*/
-
-function subcube(x,y,z){
-    const pl = new THREE.BoxGeometry()
-    const material = new THREE.MeshStandardMaterial()
+// the ground of the scene
+function ground(){
+    const pl = new THREE.BoxGeometry(20, 1, 20);
+    const material = new THREE.MeshStandardMaterial({color: 0x9b7653 })
     const cube = new THREE.Mesh( pl, material);
-    cube.translateX(x)
-    cube.translateY(y)
-    cube.translateZ(z)
-  
-    /*
-const cube = new THREE.Group();
-const front = coloredSquare(x, y, z+0.5, 0 , 0, (z == 1)? white : black);
-const back = coloredSquare(x, y, z-0.5, 0 , 0, (z == -1)? blue : black);
-const left = coloredSquare(x+0.5, y, z, 0 , 1.6 , (x == 1)? orange : black);
-const right = coloredSquare(x-0.5, y, z, 0 , toRad(-180), (x == -1)? red : black);
-const top = coloredSquare(x, y+0.5, z, toRad(90) , 0 , (y == 1)? green : black);
-const bottom = coloredSquare(x, y-0.5, z, toRad(90) , 0, (y == -1)? yellow : black);
+    cube.position.x = 0;
+    cube.position.y = 0;
+    cube.position.z = -2;
+    cube.rotation.y = 0.8;
+    cube.castShadow = true;
+    cube.receiveShadow = true;
 
-cube.add(front)
-cube.add(back)
-//cube.add(left)
-cube.add(right)
-cube.add(top)
-cube.add(bottom)
-*/
-scene.add(cube);
-
-return cube
+    cube.userData.name = 'ground';
+    scene.add(cube);
 }
 
-// let cube = subcube(0,1,0)
-//let s = subcube(1,1,1)
+// directional lights
+const dirLight = new THREE.DirectionalLight(0x649C88, 2);
+dirLight.position.x = 25
+dirLight.position.y = 50
+dirLight.position.z = 15
+dirLight.castShadow = true;
+dirLight.shadow.bias = -0.001;
+dirLight.shadow.mapSize.width = 3200;
+dirLight.shadow.mapSize.height = 3200;
+scene.add(dirLight)
 
-//const d = cube.matrix
-//console.log(d)
-const c = new Array(27);
-let h = 0;
-for (let i = 0; i < 3; i++){
-    for (let j = 0 ; j < 3; j++){
-        for (let k = 0; k < 3; k++){
-            c[h] = subcube(i-1,j-1,k-1);
-            h++; 
-        }
-    }
-}
+const dirLight2 = new THREE.DirectionalLight(0x9C5B4C, 2)
+dirLight2.position.x = -25
+dirLight2.position.y = 60
+dirLight2.position.z = -50
+dirLight2.shadow.bias = -0.001;
+dirLight2.shadow.mapSize.width = 3200;
+dirLight2.shadow.mapSize.height = 3200;
+scene.add(dirLight2)
+// shows where the light source is to make it eay to position
+// const lightHelper = new THREE.PointLightHelper( dirLight2, 10 );
+// scene.add(lightHelper)
 
-const pointLight2 = new THREE.PointLight(0xffffff, 1)
-pointLight2.position.x = 2
-pointLight2.position.y = 3
-pointLight2.position.z = 4
-scene.add(pointLight2)
-
+// set the camera controls (rotate, zoom, pan)
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
-camera.rotation.x = -45/180*Math.PI;
-camera.position.x = 0;
-camera.position.y = 5;
-camera.position.z = 5;
+camera.position.y = 10;
+camera.position.z = 20;
+camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-document.addEventListener('mousemove', onDocumentMouseMove)
-document.addEventListener('wheel', onDocumentMouseScroll)
+// set the raycaster to detect mouse click on objects
+const raycaster = new THREE.Raycaster();
+const mouseClick = new THREE.Vector2();
+const mouseDrag = new THREE.Vector2();
+const mouseDrag2 = new THREE.Vector2();
 
-let mouseX = 0;
-let mouseY = 0;
-let zoom = 0;
+// mixer is for animation and drag is for dragging the character
+let mixer;
+let drag = false;
 
-const windowX = window.innerWidth / 2;
-const windowY = window.innerHeight/ 2;
+// load the character model
+// let loader = new THREE.GLTFLoader();
+// loader.load('KnightCharacter.glb', function(gltf){
+    
+//     // enable shadow for the model 
+//     gltf.scene.traverse(function (child) {
+//         if (child.isMesh) {
+//             child.castShadow = true;
+//             child.receiveShadow = true;
+//         }
+//     });
 
-function onDocumentMouseMove(event){
-    mouseX = (event.clientX - windowX)
-    mouseY = (event.clientY - windowY)
+//     let knight = gltf.scene;
 
-}
+//     knight.position.set(0, 0.5, 0);
+//     knight.scale.set(0.75, 0.75, 0.75)
 
-function onDocumentMouseScroll(event){
-    zoom += event.deltaY
+   
 
-}
+//     scene.add(gltf.scene);
+//     scene.add(camera);
 
-let f = 0;
+//     dirLight.target = knight;
+//     scene.add(dirLight.target);
+//     dirLight2.target = knight;
+//     scene.add(dirLight2.target);
+
+//     camera.add(dirLight);
+//     renderer.render(scene, camera);
+
+//     mixer = new THREE.AnimationMixer( knight );
+//     const clips = gltf.animations;
+//     console.log(clips);
+//     clips.forEach( function ( clip ) {
+// 	    mixer.clipAction( clip ).play();
+//       mixer.clipAction( clip ).setLoop(THREE.LoopOnce);
+//       mixer.clipAction( clip ).clampWhenFinished = true;
+//     } );
+
+
+//     animate();
+
+// });
+
+var clock = new THREE.Clock();
+
 function animate() {
-	
-    //targetX = mouseX * 0.001;
-    //targetY = mouseY * 0.001;
-    //targetZ = zoom * 0.002;
-
-    
-    requestAnimationFrame( animate );
-	renderer.render( scene, camera );
-    
-    if (f<90){
-        for (let i = 0; i < 3; i++){
-                    let a = new THREE.Vector3(0,0,1)
-                    c[i].setRotationFromAxisAngle(a,toRad(f))        
-        }
-        
-    }
-    
-    
-    f++;
-    
-    
-
-    
-
+  if (mixer) {
+    mixer.update(clock.getDelta());
+  } 
+	renderer.render( scene, camera );  
+  requestAnimationFrame( animate );
+  //console.log(camera.position)
 }
+
+localStorage.setItem("planet", "Mion");
+const planet = localStorage.getItem("planet");
+console.log(planet);
+
+
+ground();
 animate();
 
